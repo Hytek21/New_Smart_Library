@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white text-center">
+                    <h4>🔒 Verify Your Details</h4>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">Both need to be verified before your account is created.</p>
+
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert {% if message.tags == 'error' %}alert-danger{% else %}alert-info{% endif %} py-2">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <!-- Email -->
+                    <div class="card mb-3 {% if email_verified %}border-success{% endif %}">
+                        <div class="card-body">
+                            <h6>📧 Email — {{ email }}
+                                {% if email_verified %}<span class="badge bg-success">Verified</span>{% endif %}
+                            </h6>
+                            {% if not email_verified %}
+                            <form method="post" class="d-flex gap-2 mt-2">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="verify_email">
+                                <input type="text" name="code" class="form-control" maxlength="6"
+                                       inputmode="numeric" placeholder="Enter email code" required>
+                                <button type="submit" class="btn btn-primary">Verify</button>
+                            </form>
+                            <form method="post" class="mt-1">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="resend_email">
+                                <button type="submit" class="btn btn-link btn-sm p-0">Resend email code</button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Phone -->
+                    <div class="card mb-3 {% if phone_verified %}border-success{% endif %}">
+                        <div class="card-body">
+                            <h6>📱 Phone — {{ phone }}
+                                {% if phone_verified %}<span class="badge bg-success">Verified</span>{% endif %}
+                            </h6>
+                            {% if not phone_verified %}
+                            <form method="post" class="d-flex gap-2 mt-2">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="verify_phone">
+                                <input type="text" name="code" class="form-control" maxlength="6"
+                                       inputmode="numeric" placeholder="Enter phone code" required>
+                                <button type="submit" class="btn btn-primary">Verify</button>
+                            </form>
+                            <form method="post" class="mt-1">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="resend_phone">
+                                <button type="submit" class="btn btn-link btn-sm p-0">Resend phone code</button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    {% if email_verified and phone_verified %}
+                        <div class="alert alert-success">Both verified — your account is ready.</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

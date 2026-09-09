@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-body">
+                    <h3 class="text-center mb-4">Create Account</h3>
+
+                    {% if form.errors %}
+                    <div class="alert alert-danger">
+                        <strong>Please fix the following errors:</strong>
+                        <ul class="mb-0">
+                            {% for field in form %}
+                                {% for error in field.errors %}
+                                    <li>{{ error }}</li>
+                                {% endfor %}
+                            {% endfor %}
+                            {% for error in form.non_field_errors %}
+                                <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+
+                    <form method="post">
+                        {% csrf_token %}
+
+                        {% if error %}
+                            <div class="alert alert-danger">{{ error }}</div>
+                        {% endif %}
+
+                        <div class="mb-3">
+                            <label class="form-label">Index Number</label>
+                            <input type="text" name="username" class="form-control" placeholder="e.g. 42XXXXXXXX"
+                                   value="{{ values.username|default:'' }}" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Email</label>
+                            <input type="email" name="email" class="form-control"
+                                   value="{{ values.email|default:'' }}" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Phone Number</label>
+                            <input type="text" name="phone_number" class="form-control"
+                                   value="{{ values.phone_number|default:'' }}" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Faculty</label>
+                            <select name="faculty" class="form-select" required>
+                                <option value="" {% if not values.faculty %}selected{% endif %} disabled>Select your faculty</option>
+                                <option value="computer_engineering" {% if values.faculty == 'computer_engineering' %}selected{% endif %}>
+                                    Faculty of Computer Engineering
+                                </option>
+                                <option value="computing_information_systems" {% if values.faculty == 'computing_information_systems' %}selected{% endif %}>
+                                    Faculty of Computing and Information Systems
+                                </option>
+                                <option value="business_school" {% if values.faculty == 'business_school' %}selected{% endif %}>
+                                    GCTU Business School
+                                </option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Password</label>
+                            <div class="input-group">
+                                <input type="password" name="password1" id="id_password1" class="form-control" required>
+                                <button class="btn btn-outline-secondary toggle-password" type="button" data-target="id_password1">👁</button>
+                                <small class="text-muted">
+                                    Password must contain at least 8 characters and include at least one uppercase letter, one lowercase a number and a symbol (e.g. !@#$%^&*()).
+                                </small>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Confirm Password</label>
+                            <div class="input-group">
+                                <input type="password" name="password2" id="id_password2" class="form-control" required>
+                                <button class="btn btn-outline-secondary toggle-password" type="button" data-target="id_password2">👁</button>
+                            </div>
+                        </div>
+
+                        <p class="text-muted small">You'll be asked to verify both your email and phone number before your account is created.</p>
+
+                        <button type="submit" class="btn btn-primary w-100">Continue</button>
+                    </form>
+
+                    <script>
+                    document.querySelectorAll('.toggle-password').forEach(function (btn) {
+                        btn.addEventListener('click', function () {
+                            var input = document.getElementById(btn.dataset.target);
+                            if (!input) return;
+                            input.type = input.type === 'password' ? 'text' : 'password';
+                        });
+                    });
+                    </script>
+
+                    <p class="text-center mt-3">
+                        Already have an account? <a href="{% url 'login' %}">Login</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    input {
+        width: 100%;
+        padding: 8px 12px;
+        border: 1px solid #ced4da;
+        border-radius: 6px;
+    }
+</style>
+{% endblock %}

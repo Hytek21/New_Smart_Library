@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-5">
+            <div class="card shadow border-dark">
+                <div class="card-header bg-dark text-white text-center">
+                    <h4>⚙️ Admin Login</h4>
+                </div>
+                <div class="card-body">
+                    {% if form.errors %}
+                    <div class="alert alert-danger">
+                        Incorrect credentials, or this account doesn't have admin access.
+                    </div>
+                    {% endif %}
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label">Username</label>
+                            {{ form.username }}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Password</label>
+                            <div class="input-group">
+                                {{ form.password }}
+                                <button class="btn btn-outline-secondary toggle-password" type="button" data-target="id_password">👁</button>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-dark w-100">Login to Admin Panel</button>
+                    </form>
+                </div>
+            </div>
+            <p class="text-center mt-3">
+                <a href="{% url 'login' %}">← Back to student login</a>
+            </p>
+        </div>
+    </div>
+</div>
+
+<script>
+document.querySelectorAll('.toggle-password').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+        var input = document.getElementById(btn.dataset.target);
+        if (!input) return;
+        input.type = input.type === 'password' ? 'text' : 'password';
+    });
+});
+</script>
+{% endblock %}

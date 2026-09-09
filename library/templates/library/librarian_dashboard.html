@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid mt-4 px-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0">🗂️ Librarian Dashboard</h2>
+        <a href="/admin/" class="btn btn-outline-dark btn-sm">Manage Books & Categories (Django Admin) →</a>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert {% if message.tags == 'error' %}alert-danger{% else %}alert-success{% endif %}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Stats -->
+    <div class="row mb-4 g-3">
+        <div class="col-md-3">
+            <div class="card text-center shadow-sm border-0 bg-primary text-white">
+                <div class="card-body">
+                    <h3>{{ pending_borrowings|length }}</h3>
+                    <div>Pending Borrow Requests</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center shadow-sm border-0 bg-warning">
+                <div class="card-body">
+                    <h3>{{ pending_returns|length }}</h3>
+                    <div>Pending Return Requests</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center shadow-sm border-0 bg-danger text-white">
+                <div class="card-body">
+                    <h3>{{ overdue_with_fines|length }}</h3>
+                    <div>Overdue Loans</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center shadow-sm border-0 bg-success text-white">
+                <div class="card-body">
+                    <h3>{{ active_loans }}</h3>
+                    <div>Active Loans</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pending Borrow Requests -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-white"><strong>📥 Pending Borrow Requests</strong></div>
+        <div class="card-body">
+            {% if pending_borrowings %}
+            <div class="table-responsive">
+                <table class="table align-middle">
+                    <thead>
+                        <tr><th>Student</th><th>Book</th><th>Requested</th><th>Note (optional)</th><th></th></tr>
+                    </thead>
+                    <tbody>
+                        {% for b in pending_borrowings %}
+                        <tr>
+                            <td>{{ b.user.username }}</td>
+                            <td>{{ b.book.title }}</td>
+                            <td>{{ b.borrow_date|date:"d M Y" }}</td>
+                            <td>
+                                <form method="post" action="{% url 'approve_borrow_request' b.pk %}" class="d-flex gap-2">
+                                    {% csrf_token %}
+                                    <input type="text" name="note" class="form-control form-control-sm" placeholder="e.g. Pick up by Friday">
+                                    <button type="submit" class="btn btn-success btn-sm text-nowrap">✅ Approve</button>
+                                </form>
+                            </td>
+                            <td>
+                                <form method="post" action="{% url 'reject_borrow_request' b.pk %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-outline-danger btn-sm">Reject</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-muted mb-0">No pending borrow requests.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Pending Return Requests -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-white"><strong>📤 Pending Return Requests</strong></div>
+        <div class="card-body">
+            {% if pending_returns %}
+            <div class="table-responsive">
+                <table class="table align-middle">
+                    <thead>
+                        <tr><th>Student</th><th>Book</th><th>Due</th><th>Fine if confirmed now</th><th>Note</th><th></th></tr>
+                    </thead>
+                    <tbody>
+                        {% for b in pending_returns %}
+                        <tr>
+                            <td>{{ b.user.username }}</td>
+                            <td>{{ b.book.title }}</td>
+                            <td>{{ b.due_date|date:"d M Y" }}</td>
+                            <td>
+                                {% with fine=b.calculate_fine %}
+                                    {% if fine > 0 %}<span class="text-danger fw-bold">GHS {{ fine }}</span>{% else %}—{% endif %}
+                                {% endwith %}
+                            </td>
+                            <td>
+                                <form method="post" action="{% url 'approve_return_request' b.pk %}" class="d-flex gap-2">
+                                    {% csrf_token %}
+                                    <input type="text" name="note" class="form-control form-control-sm" placeholder="optional note">
+                                    <button type="submit" class="btn btn-success btn-sm text-nowrap">✅ Confirm Return</button>
+                                </form>
+                            </td>
+                            <td>
+                                <form method="post" action="{% url 'reject_return_request' b.pk %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-outline-secondary btn-sm">Revert</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-muted mb-0">No pending return requests.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Overdue -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-white"><strong>⏰ Overdue Loans (not yet returned)</strong></div>
+        <div class="card-body">
+            {% if overdue_with_fines %}
+            <div class="table-responsive">
+                <table class="table align-middle">
+                    <thead>
+                        <tr><th>Student</th><th>Book</th><th>Due Date</th><th>Days Late</th><th>Fine So Far</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for b, fine in overdue_with_fines %}
+                        <tr>
+                            <td>{{ b.user.username }}</td>
+                            <td>{{ b.book.title }}</td>
+                            <td>{{ b.due_date|date:"d M Y" }}</td>
+                            <td>{{ b.days_late }}</td>
+                            <td class="text-danger fw-bold">GHS {{ fine }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-muted mb-0">Nothing overdue right now. 🎉</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
