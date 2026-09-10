@@ -165,12 +165,20 @@ LOGOUT_TEMPLATE = 'registration/logged_out.html'
 # raw SMTP. Render blocks/hangs outbound SMTP (ports 25/465/587), which was
 # crashing gunicorn workers on login. Resend is a normal HTTPS call so it
 # isn't affected.
-EMAIL_BACKEND = 'library.email_backends.ResendEmailBackend'
-RESEND_API_KEY = os.environ.get('RESEND_API_KEY', '')
+#EMAIL_BACKEND = 'library.email_backends.ResendEmailBackend'
+#RESEND_API_KEY = os.environ.get('RESEND_API_KEY', '')
 # 'onboarding@resend.dev' works immediately with no domain setup, for any
 # recipient — good for getting this working today. Switch to an address on
 # your own verified domain in the Resend dashboard when you're ready.
-DEFAULT_FROM_EMAIL = os.environ.get('RESEND_FROM_EMAIL', 'onboarding@resend.dev')
+#DEFAULT_FROM_EMAIL = os.environ.get('RESEND_FROM_EMAIL', 'onboarding@resend.dev')
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp-relay.brevo.com')
+EMAIL_PORT = int(os.environ.get('EMAIL_PORT', '587'))
+EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'True') == 'True'
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
+DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER)
 
 # Safety net: if anything in Django ever falls back to real SMTP (e.g. a
 # future EMAIL_BACKEND change), fail after 10s instead of hanging forever.
